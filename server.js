@@ -45,6 +45,7 @@ app.use(cors({
     // En producción, permitir dominios específicos
     const allowedOrigins = [
       'https://eventual-frontend.vercel.app',
+      'https://eventual-frontend-five.vercel.app',
       'https://eventual.vercel.app',
       process.env.FRONTEND_URL
     ].filter(Boolean);
