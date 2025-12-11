@@ -20,6 +20,11 @@ const app = express();
 // Configuración para Vercel
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Configurar trust proxy para servicios como Render, Heroku, etc.
+if (isProduction) {
+  app.set('trust proxy', 1); // Trust first proxy (Render, Vercel, etc.)
+}
+
 // Middleware de seguridad
 app.use(helmet({
   contentSecurityPolicy: false, // Deshabilitar para desarrollo
@@ -60,7 +65,11 @@ app.use(cors({
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: isProduction ? 100 : 1000, // Más requests en desarrollo
-  message: 'Demasiadas peticiones desde esta IP, intenta de nuevo más tarde.'
+  message: 'Demasiadas peticiones desde esta IP, intenta de nuevo más tarde.',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  // Configuración para servicios de hosting con proxy
+  trustProxy: isProduction
 });
 app.use('/api', limiter);
 
