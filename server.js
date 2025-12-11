@@ -20,10 +20,9 @@ const app = express();
 // Configuración para Vercel
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Configurar trust proxy para servicios como Render, Heroku, etc.
-if (isProduction) {
-  app.set('trust proxy', 1); // Trust first proxy (Render, Vercel, etc.)
-}
+// IMPORTANT: Configurar trust proxy SIEMPRE para servicios como Render
+// Esto debe ir antes de cualquier middleware que use IPs (como rate limiting)
+app.set('trust proxy', 1);
 
 // Middleware de seguridad
 app.use(helmet({
@@ -62,15 +61,18 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Rate limiting
+// Rate limiting - configurado para funcionar con proxies
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: isProduction ? 100 : 1000, // Más requests en desarrollo
   message: 'Demasiadas peticiones desde esta IP, intenta de nuevo más tarde.',
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  // Configuración para servicios de hosting con proxy
-  trustProxy: isProduction
+  standardHeaders: true,
+  legacyHeaders: false,
+  // No necesitamos trustProxy aquí porque ya está configurado globalmente
+  skip: (req) => {
+    // Skip rate limiting para desarrollo local
+    return !isProduction && req.ip === '127.0.0.1';
+  }
 });
 app.use('/api', limiter);
 
