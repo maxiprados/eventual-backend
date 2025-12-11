@@ -6,12 +6,18 @@ const jwt = require('jsonwebtoken');
 const LoginLog = require('../models/LoginLog');
 
 // Configuración de Google OAuth Strategy
+console.log('🔧 Configurando Google OAuth con:');
+console.log('  - Client ID:', process.env.GOOGLE_CLIENT_ID ? 'configurado' : 'FALTA');
+console.log('  - Client Secret:', process.env.GOOGLE_CLIENT_SECRET ? 'configurado' : 'FALTA');
+console.log('  - Callback URL: https://eventual-backend-r8yc.onrender.com/api/auth/google/callback');
+
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: "/api/auth/google/callback"
+  callbackURL: "https://eventual-backend-r8yc.onrender.com/api/auth/google/callback"
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+    console.log('✅ Google OAuth callback ejecutado para usuario:', profile.displayName);
     const user = {
       id: profile.id,
       email: profile.emails[0].value,
