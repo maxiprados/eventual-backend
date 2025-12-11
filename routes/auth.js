@@ -17,20 +17,28 @@ router.get('/google/callback',
   passport.authenticate('google', { session: false }),
   async (req, res) => {
     try {
+      console.log('🔄 Google callback received, user:', req.user ? 'found' : 'not found');
+      
       if (req.user && req.user.token) {
         // Redirigir al frontend con el token
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        res.redirect(`${frontendUrl}/auth/success?token=${req.user.token}&user=${encodeURIComponent(JSON.stringify({
+        const frontendUrl = process.env.FRONTEND_URL || 'https://eventual-frontend-five.vercel.app';
+        const redirectUrl = `${frontendUrl}/auth/success?token=${req.user.token}&user=${encodeURIComponent(JSON.stringify({
           email: req.user.email,
           name: req.user.name,
           picture: req.user.picture
-        }))}`);
+        }))}`;
+        
+        console.log('✅ Redirecting to:', redirectUrl);
+        res.redirect(redirectUrl);
       } else {
-        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/error`);
+        const errorUrl = `${process.env.FRONTEND_URL || 'https://eventual-frontend-five.vercel.app'}/auth/error`;
+        console.log('❌ Auth failed, redirecting to:', errorUrl);
+        res.redirect(errorUrl);
       }
     } catch (error) {
-      console.error('Error en callback de Google:', error);
-      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/error`);
+      console.error('❌ Error en callback de Google:', error);
+      const errorUrl = `${process.env.FRONTEND_URL || 'https://eventual-frontend-five.vercel.app'}/auth/error`;
+      res.redirect(errorUrl);
     }
   }
 );
